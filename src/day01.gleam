@@ -6,7 +6,6 @@ import simplifile
 
 pub fn part_one(file: String) -> Result(Int, Nil) {
   let assert Ok(contents) = simplifile.read(file)
-
   let #(first, second) = extract_lists(contents)
 
   list.zip(first, second)
