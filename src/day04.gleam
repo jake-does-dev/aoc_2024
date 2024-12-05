@@ -1,6 +1,9 @@
 import gleam/dict.{type Dict}
+import gleam/int
 import gleam/io
 import gleam/list
+import gleam/order
+import gleam/result
 import gleam/string
 import simplifile
 
@@ -12,57 +15,84 @@ type Grid(a) =
 
 pub fn part_one(file: String) -> Int {
   let assert Ok(input) = simplifile.read(file)
-
   let grid = parse_grid(input)
 
-  let windows =
-    list.range(0, 9)
-    |> list.window(4)
-    |> list.append(
-      list.range(9, 0)
-      |> list.window(4),
-    )
+  // going clockwise around, starting from north
+  let cardinal_directions = [
+    #(0, 1),
+    #(1, 1),
+    #(1, 0),
+    #(1, -1),
+    #(0, -1),
+    #(-1, -1),
+    #(-1, 0),
+    #(-1, 1),
+  ]
 
-  list.range(0, 9)
-  |> list.map(fn(i) {
-    windows
-    |> list.map(fn(window) {
-      let assert Ok(#(i0, remainder)) = list.pop(window, fn(_) { True })
-      let assert Ok(#(i1, remainder)) = list.pop(remainder, fn(_) { True })
-      let assert Ok(#(i2, remainder)) = list.pop(remainder, fn(_) { True })
-      let assert Ok(#(i3, _remainder)) = list.pop(remainder, fn(_) { True })
+  dict.fold(grid, 0, fn(sum, origin, char) {
+    case char {
+      "X" -> {
+        sum
+        + list.fold(cardinal_directions, 0, fn(sum, direction) {
+          let #(x, y) = origin
+          let #(dx, dy) = direction
 
-      let assert Ok(first) = dict.get(grid, #(i, i0))
-      let assert Ok(second) = dict.get(grid, #(i, i1))
-      let assert Ok(third) = dict.get(grid, #(i, i2))
-      let assert Ok(fourth) = dict.get(grid, #(i, i3))
+          let one_step = #(x + dx, y + dy)
+          let two_steps = #(x + 2 * dx, y + 2 * dy)
+          let three_steps = #(x + 3 * dx, y + 3 * dy)
 
-      case #(first, second, third, fourth) {
-        #("X", "M", "A", "S") -> todo
-        #("S", "A", "M", "X") -> todo
-        _ -> todo
+          case
+            dict.get(grid, one_step),
+            dict.get(grid, two_steps),
+            dict.get(grid, three_steps)
+          {
+            Ok("M"), Ok("A"), Ok("S") -> sum + 1
+            _, _, _ -> sum
+          }
+        })
       }
-
-      todo
-    })
+      _ -> sum
+    }
   })
-
-  io.debug(windows)
-
-  todo
 }
 
 pub fn part_two(file: String) -> Int {
-  todo
+  let assert Ok(input) = simplifile.read(file)
+  let grid = parse_grid(input)
+
+  dict.fold(grid, 0, fn(sum, origin, char) {
+    case char {
+      "A" -> {
+        let #(x, y) = origin
+
+        let nw = dict.get(grid, #(x - 1, y - 1))
+        let ne = dict.get(grid, #(x + 1, y - 1))
+        let sw = dict.get(grid, #(x - 1, y + 1))
+        let se = dict.get(grid, #(x + 1, y + 1))
+
+        case nw, ne, sw, se {
+          Ok("M"), Ok("S"), Ok("M"), Ok("S")
+          | Ok("M"), Ok("M"), Ok("S"), Ok("S")
+          | Ok("S"), Ok("S"), Ok("M"), Ok("M")
+          | Ok("S"), Ok("M"), Ok("S"), Ok("M")
+          -> {
+            sum + 1
+          }
+          _, _, _, _ -> sum
+        }
+      }
+      _ -> sum
+    }
+  })
 }
 
 fn parse_grid(input: String) -> Grid(String) {
   input
   |> string.split(on: "\n")
-  |> list.index_map(fn(row, x) {
+  |> list.index_map(fn(row, y) {
     row
     |> string.split(on: "")
-    |> list.index_map(fn(char, y) { #(#(x, y), char) })
+    |> list.index_map(fn(char, x) { #(#(x, y), char) })
   })
   |> list.flatten
   |> dict.from_list
