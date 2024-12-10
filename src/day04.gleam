@@ -1,21 +1,11 @@
-import gleam/dict.{type Dict}
-import gleam/int
-import gleam/io
+import gleam/dict
 import gleam/list
-import gleam/order
-import gleam/result
-import gleam/string
+import grid
 import simplifile
-
-type Coords =
-  #(Int, Int)
-
-type Grid(a) =
-  Dict(Coords, a)
 
 pub fn part_one(file: String) -> Int {
   let assert Ok(input) = simplifile.read(file)
-  let grid = parse_grid(input)
+  let grid = grid.parse(input)
 
   // going clockwise around, starting from north
   let cardinal_directions = [
@@ -58,7 +48,7 @@ pub fn part_one(file: String) -> Int {
 
 pub fn part_two(file: String) -> Int {
   let assert Ok(input) = simplifile.read(file)
-  let grid = parse_grid(input)
+  let grid = grid.parse(input)
 
   dict.fold(grid, 0, fn(sum, origin, char) {
     case char {
@@ -84,16 +74,4 @@ pub fn part_two(file: String) -> Int {
       _ -> sum
     }
   })
-}
-
-fn parse_grid(input: String) -> Grid(String) {
-  input
-  |> string.split(on: "\n")
-  |> list.index_map(fn(row, y) {
-    row
-    |> string.split(on: "")
-    |> list.index_map(fn(char, x) { #(#(x, y), char) })
-  })
-  |> list.flatten
-  |> dict.from_list
 }
