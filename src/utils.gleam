@@ -11,26 +11,11 @@ pub fn list_of_lists(
 ) -> List(List(Int)) {
   let assert Ok(contents) = simplifile.read(file)
 
-  let reports =
-    contents
-    |> string.split(on: new_line_separator)
-    |> list.map(fn(numbers_str) {
-      numbers_str
-      |> string.split(on: line_separator)
-      |> list.map(fn(str) { int.parse(str) |> result.unwrap(0) })
-    })
-}
-
-pub fn list_of_lists_of_strings(
-  file: String,
-  new_line_separator: String,
-) -> List(List(Int)) {
-  let assert Ok(contents) = simplifile.read(file)
-
-  let reports =
-    contents
-    |> string.split(on: new_line_separator)
-    |> list.map(fn(numbers_str) { numbers_str |> string.split(on: "") })
-
-  todo
+  contents
+  |> string.split(on: new_line_separator)
+  |> list.map(fn(numbers_str) {
+    numbers_str
+    |> string.split(on: line_separator)
+    |> list.map(fn(str) { int.parse(str) |> result.unwrap(0) })
+  })
 }

@@ -126,7 +126,6 @@ fn do_walk(grid: Grid(String), steps: List(Step)) -> List(Step) {
   let coords = last_step.coords
   let direction = last_step.next_direction
   let visited = last_step.visited
-  let step_number = last_step.number
 
   case dict.get(grid, move(coords, direction)) {
     Ok(value) -> {
