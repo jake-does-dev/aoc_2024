@@ -21,7 +21,7 @@ pub fn part_one_example_test() {
 // }
 // pub fn part_two_example_test() {
 //   day09.part_two("./test/resources/day09_example.txt")
-//   |> should.equal(34)
+//   |> should.equal(Ok(2858))
 // }
 // pub fn part_two_puzzle_test() {
 //   day09.part_two("./test/resources/day09_puzzle.txt")
