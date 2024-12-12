@@ -1,5 +1,4 @@
 import gleam/dict.{type Dict}
-import gleam/io
 import gleam/list
 import gleam/set.{type Set}
 import grid.{type Coords, type Grid}
@@ -59,7 +58,6 @@ pub fn part_two(file: String) -> Int {
       list.range(0, size_y)
       |> list.map(fn(y) {
         let coords = #(x, y)
-        // io.debug(coords)
         dict.insert(grid, coords, "#")
       })
     })
@@ -67,15 +65,8 @@ pub fn part_two(file: String) -> Int {
 
   obstructed_grids
   |> list.count(fn(grid) {
-    io.debug("--- new grid ---")
     do_overlapping_walk(grid, Move(origin, Up), dict.new())
   })
-  // |> list.map(fn(steps) {
-  //   let assert Ok(first) = list.first(steps)
-  //   first
-  // })
-  // |> list.count(fn(step) { step.number == 100_001 })
-  // todo
 }
 
 fn do_overlapping_walk(
@@ -88,14 +79,8 @@ fn do_overlapping_walk(
     Error(_) -> dict.insert(all_moves, current_move, 1)
   }
 
-  io.debug("all moves")
-  io.debug(all_moves)
-
   case dict.get(all_moves, current_move) {
     Ok(2) -> {
-      io.debug("+++++++loop has been detected+++++")
-      io.debug(current_move)
-      io.debug("^^^^ this gives the loop ^^^^^")
       True
     }
     // walk contains a loop if we see the same coordinate AND the same direction at a future point
@@ -104,17 +89,26 @@ fn do_overlapping_walk(
       let direction = current_move.direction
 
       case dict.get(grid, move(coords, direction)) {
-        Ok(value) -> {
-          let #(coords, next_direction) = case value {
-            "#" -> #(move(coords, rotate(direction)), rotate(direction))
-            _ -> #(move(coords, direction), direction)
+        Ok(_) -> {
+          let next_direction = case
+            dict.get(grid, move(coords, direction)),
+            dict.get(grid, move(coords, rotate(direction))),
+            dict.get(grid, move(coords, rotate(rotate(direction)))),
+            dict.get(grid, move(coords, rotate(rotate(rotate(direction)))))
+          {
+            d, _, _, _ if d != Ok("#") -> direction
+            _, d, _, _ if d != Ok("#") -> rotate(direction)
+            _, _, d, _ if d != Ok("#") -> rotate(rotate(direction))
+            _, _, _, _ -> rotate(rotate(rotate(direction)))
           }
+
           do_overlapping_walk(
             grid,
-            Move(coords, next_direction),
+            Move(move(coords, next_direction), next_direction),
             dict.insert(all_moves, current_move, 1),
           )
         }
+        // error as out of bounds
         Error(Nil) -> False
       }
     }
